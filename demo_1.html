@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title>three.js canvas - lines - sphere</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<style>
+		body {
+			background-color: #000000;
+			margin: 0px;
+			overflow: hidden;
+		}
+		
+		a {
+			color: #0078ff;
+		}
+		
+		#timeline {
+			width: 940px;
+			margin: 20px 50px;
+		}
+		
+		.line {
+			fill: none;
+			stroke: #fff;
+			stroke-width: 2px;
+		}
+		
+		.area {
+			fill: steelblue;
+		}
+		
+		#bar {
+			position: absolute;
+			top: 580px;
+		}
+	</style>
+</head>
+
+<body>
+	<svg id="bar" width: 100% height: auto viewBox="0 0 960 60" preserveAspectRatio="xMidYMid"></svg>;
+	<script src="./js/three.js"></script>
+	<script src="./js/renderers/Projector.js"></script>
+	<script src="./data/network.js"></script>
+	<script src="./data/data1.js"></script>
+    <script src="./data/newdata.js"></script>
+	<script src="./js/renderers/CanvasRenderer.js"></script>
+	<script src="https://d3js.org/d3.v4.min.js"></script>
+	<script>
+
+			var SCREEN_WIDTH = window.innerWidth,
+			SCREEN_HEIGHT = window.innerHeight,
+            dotNum=0,
+            lineNum=0,
+			mouseX = 0, mouseY = 0,
+
+			windowHalfX = window.innerWidth / 2,
+			windowHalfY = window.innerHeight / 2,
+
+			SEPARATION = 200,
+			AMOUNTX = 10,
+			AMOUNTY = 10,
+
+			camera, scene, renderer,cameraR=0, cameraTheta=0;
+            
+            var renderCount=0;
+            var nodes=data1.nodes;
+            var parentNodes=newdata.nodes;
+            var lineChart=data1.now;
+  
+			init();
+			animate();
+
+			function init() {
+
+				var container, separation = 100, amountX = 50, amountY = 50,
+				particles, particle;
+
+				container = document.createElement('div');
+				document.body.appendChild(container);
+
+				camera = new THREE.PerspectiveCamera( 75, SCREEN_WIDTH / SCREEN_HEIGHT, 1, 10000 );
+				camera.position.z = 1000;
+                cameraR=camera.position.z;
+
+				scene = new THREE.Scene();
+
+				renderer = new THREE.CanvasRenderer();
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( SCREEN_WIDTH, SCREEN_HEIGHT );
+				container.appendChild( renderer.domElement );
+
+				
+
+				var PI2 = Math.PI * 2;
+				
+               
+				
+				document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+				document.addEventListener( 'touchstart', onDocumentTouchStart, false );
+				document.addEventListener( 'touchmove', onDocumentTouchMove, false );
+
+				//
+
+				window.addEventListener( 'resize', onWindowResize, true );
+
+
+			}
+
+			function onWindowResize() {
+
+				windowHalfX = window.innerWidth / 2;
+				windowHalfY = window.innerHeight / 2;
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+			//
+
+			function onDocumentMouseMove(event) {
+
+				mouseX = event.clientX - windowHalfX;
+				mouseY = event.clientY - windowHalfY;
+			}
+
+			function onDocumentTouchStart( event ) {
+
+				if ( event.touches.length > 1 ) {
+
+					event.preventDefault();
+
+					mouseX = event.touches[ 0 ].pageX - windowHalfX;
+					mouseY = event.touches[ 0 ].pageY - windowHalfY;
+
+				}
+
+			}
+
+			function onDocumentTouchMove( event ) {
+
+				if ( event.touches.length == 1 ) {
+
+					event.preventDefault();
+
+					mouseX = event.touches[ 0 ].pageX - windowHalfX;
+					mouseY = event.touches[ 0 ].pageY - windowHalfY;
+
+				}
+
+			}
+            
+            function generateSprite(i) {
+
+				var canvas = document.createElement( 'canvas' );
+				canvas.width = 16;
+				canvas.height = 16;
+
+				var context = canvas.getContext( '2d' );
+				var gradient = context.createRadialGradient( canvas.width / 2, canvas.height / 2, 0, canvas.width / 2, canvas.height / 2, canvas.width / 2 );
+                var r=155*Math.random()+100;
+                var g=155*Math.random()+100;
+                var b=155*Math.random()+100;
+                
+                gradient.addColorStop( 0, 'rgba('+r.toFixed(0)+','+g.toFixed(0)+','+b.toFixed(0)+',1)' );
+                gradient.addColorStop( 0.2, 'rgba('+(r*0.5).toFixed(0)+','+(g*0.5).toFixed(0)+','+(b*0.5).toFixed(0)+',1)' );
+                gradient.addColorStop( 0.4, 'rgba('+(r*0.2).toFixed(0)+','+(g*0.2).toFixed(0)+','+(b*0.2).toFixed(0)+',1)' );
+                gradient.addColorStop( 1, 'rgba(0,0,0,1)' );                    
+
+				context.fillStyle = gradient;
+				context.fillRect( 0, 0, canvas.width, canvas.height );
+
+				return canvas;
+
+
+			}
+
+			//
+
+			function animate() {
+                render();
+                requestAnimationFrame( animate );
+
+			}
+
+			function render() {
+                draw();
+                cameraR+=dotNum*0.001;
+                cameraTheta+=dotNum*0.0001;
+				//camera.position.x += ( mouseX - camera.position.x ) * .05;
+				//camera.position.y += ( - mouseY + 200 - camera.position.y ) * .05;
+                camera.position.x = cameraR*Math.sin(cameraTheta);
+				camera.position.z = cameraR*Math.cos(cameraTheta);
+               // scene.geometry.rotateX(3);
+				camera.lookAt( scene.position );
+               // line.rotation.x += 0.01;
+                
+				renderer.render( scene, camera );
+
+			}
+            
+            function draw(){
+             renderCount+=1;   
+             
+            if(dotNum<10000&&renderCount>0)
+               { 
+                    // particles
+                    dotNum+=1;
+                    renderCount=0;
+
+                    var self=nodes[dotNum];
+                    var parent=newNodes["+self.uid+"];
+                    
+                    var material = new THREE.SpriteMaterial( {
+					color: 0xffffff,
+					map: new THREE.CanvasTexture( generateSprite(dotNum) ),
+                   // map:new THREE.TextureLoader().load( "textures/sprites/circle.png" ),
+					blending: THREE.AdditiveBlending
+                    } );
+                    
+					particle = new THREE.Sprite( material );
+                    //console.log(particle);
+			//		particle.position.x = Math.random() * 2 - 1;
+			//		particle.position.y = Math.random() * 2 - 1;
+			//		particle.position.z = Math.random() * 2 - 1;
+			//		particle.position.normalize();
+
+                    particle.position.x = self.x;
+					particle.position.y = self.y;
+					particle.position.z = self.z;
+
+                    particle.scale.multiplyScalar(self.degree*10 );//the size of the particles
+
+					particle.position.multiplyScalar( 0.1 );//the size scale of the sphere
+					
+                    
+					scene.add( particle );
+                    
+                    
+                    // lines
+                    lineNum+=1;
+					var geometry = new THREE.Geometry();
+                    
+                    var vertex=particle.position;
+                    geometry.vertices.push( vertex );
+					
+                  
+
+//					var vertex2 = vertex.clone();
+//					vertex2.multiplyScalar( Math.random() * 1 + 1 );
+                    
+                    var vertex2=new THREE.Vector3(parent.x,parent.y,parent.z);
+
+					geometry.vertices.push( vertex2 );
+
+					var line = new THREE.Line( geometry, new THREE.LineBasicMaterial( { color: 0xffffff, opacity: Math.random() } ) );
+					scene.add( line );
+               }
+            }
+
+        </script>
+</body>
+
+<script>
+
+        var width = 960,
+            height = 50,
+            svg = d3.select("#bar"),
+            margin = {top: 10, right: 10, bottom: 00, left: 10},
+            g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top+ ")");
+
+        var x = d3.scaleLinear()
+            .rangeRound([0, width]);
+
+        var y = d3.scaleLinear()
+            .rangeRound([height, 0]);
+            
+        var line = d3.line()
+            .x(function(d) { return x(d.id); })
+            .y(function(d) { return y(d.num); });
+            
+        var area = d3.area()
+            .x(function(d) { return x(d.id); })
+            .y0(height+margin.top)
+            .y1(function(d) { return y(d.num); });
+
+ //       d3.tsv("./data/data.tsv", function(d) {
+ //         d.date = parseTime(d.date);
+ //         d.close = +d.close;
+ //         return d;
+ //       }, function(error, data) {
+ //         if (error) throw error;
+        
+       x.domain(d3.extent(lineChart, function(d) { return +d.id; }));
+       y.domain([0,d3.max(lineChart, function(d) { return +d.num; })]);
+            
+       g.append("path")
+        .datum(lineChart)
+        .attr("class","area")
+        .attr("d",area);
+            
+
+
+//          g.append("g")
+//              .attr("class", "axis axis--x")
+//              .attr("transform", "translate(0," + height + ")")
+//              .call(d3.axisBottom(x));
+//
+//          g.append("g")
+//              .attr("class", "axis axis--y")
+//              .call(d3.axisLeft(y))
+//            .append("text")
+//              .attr("fill", "#000")
+//              .attr("transform", "rotate(-90)")
+//              .attr("y", 6)
+//              .attr("dy", "0.71em")
+//              .style("text-anchor", "end")
+//              .text("Price ($)");
+            
+        g.append("path")
+          .datum(lineChart)
+          .attr("class", "line")
+          .attr("d", line);
+            
+        g.append("circle")
+            .attr("r", 5)
+            .style("fill", "#fff" )
+            .style("stroke", "#fff")
+            .style("stroke-width", "2px")
+            .attr("cx",x(+lineChart[0].id))
+            .attr("cy",y(+lineChart[0].num))      
+        
+        var lineTimer=0;
+        var myVar = setInterval(myTimer, 1000);
+        var leng=lineChart.length;
+
+        function myTimer() {
+            if(lineTimer<leng){
+               // d3.select("circle").remove();
+                d3.select("circle")
+                .transition()
+                .duration(1000)
+                .ease(d3.easeLinear)
+                .attr("cx",x(+lineChart[lineTimer].id))
+                .attr("cy",y(+lineChart[lineTimer].num))
+                
+               
+            }
+            lineTimer+=1;
+        }
+   // });
+
+        </script>
+
+</html>
