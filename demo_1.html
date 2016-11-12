@@ -33,21 +33,23 @@
 		
 		#bar {
 			position: absolute;
-			top: 600px;
+			bottom: 0px;
 		}
 	</style>
 </head>
 
 <body>
+	
 	<svg id="bar" width: 100% height: auto viewBox="0 0 960 60" preserveAspectRatio="xMidYMid"></svg>;
+	
+</body>
 	<script src="./js/three.js"></script>
 	<script src="./js/renderers/Projector.js"></script>
 	<script src="./js/renderers/CanvasRenderer.js"></script>
-	<script src="./data/nodeRef.js"></script>
-	<script src="./data/data1.js"></script>
 	<script src="https://d3js.org/d3.v4.min.js"></script>
 	<script>
-			var p=Promise.resolve();
+	d3.json("./data/nodeRef.json",nodeRef=>{
+		d3.json("./data/data1.json",data1=>{
 			var SCREEN_WIDTH = window.innerWidth,
 			SCREEN_HEIGHT = window.innerHeight,
             dotNum=0,
@@ -190,9 +192,18 @@
 
 				var context = canvas.getContext( '2d' );
 				var gradient = context.createRadialGradient( canvas.width / 2, canvas.height / 2, 0, canvas.width / 2, canvas.height / 2, canvas.width / 2 );
-                var r=155*Math.random()+110;
-                var g=155*Math.random()+110;
-                var b=155*Math.random()+110;
+                var r=0;
+				var g=0;
+				var b=0;
+				if(i==0){
+					r=0;
+					g=20;
+					b=150;
+				}
+				else{
+					r=155*Math.random()+110;
+					g=155*Math.random()+110;
+					b=155*Math.random()+110;}
                 
                 gradient.addColorStop( 0, 'rgba('+r.toFixed(0)+','+g.toFixed(0)+','+b.toFixed(0)+',1)' );
                 gradient.addColorStop( 0.2, 'rgba('+(r*0.5).toFixed(0)+','+(g*0.5).toFixed(0)+','+(b*0.5).toFixed(0)+',1)' );
@@ -303,7 +314,7 @@
 					particle.position.y = self.y-py;
 					particle.position.z = self.z-pz;
 
-                    particle.scale.multiplyScalar(Math.sqrt(self.degree+1)*10 );//the size of the particles
+                    particle.scale.multiplyScalar(Math.sqrt(self.degree+1)*8 );//the size of the particles
 
 					particle.position.multiplyScalar( 0.25 );//the size scale of the sphere
 					particle.position.z+=50;
@@ -340,11 +351,6 @@
 				   
                }
             }
-
-        </script>
-</body>
-
-<script>
 		
         var lineChart=data1.now;
         var width = 960,
@@ -432,7 +438,9 @@
             }
             lineTimer+=1;
         }
-
+	
+		})
+	})
 		
    // });
 
