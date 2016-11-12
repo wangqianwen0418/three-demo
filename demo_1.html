@@ -33,7 +33,7 @@
 		
 		#bar {
 			position: absolute;
-			top: 580px;
+			top: 600px;
 		}
 	</style>
 </head>
@@ -42,13 +42,12 @@
 	<svg id="bar" width: 100% height: auto viewBox="0 0 960 60" preserveAspectRatio="xMidYMid"></svg>;
 	<script src="./js/three.js"></script>
 	<script src="./js/renderers/Projector.js"></script>
-	<script src="./data/network.js"></script>
-	<script src="./data/data1.js"></script>
-    <script src="./data/newdata.js"></script>
 	<script src="./js/renderers/CanvasRenderer.js"></script>
+	<script src="./data/nodeRef.js"></script>
+	<script src="./data/data1.js"></script>
 	<script src="https://d3js.org/d3.v4.min.js"></script>
 	<script>
-
+			var p=Promise.resolve();
 			var SCREEN_WIDTH = window.innerWidth,
 			SCREEN_HEIGHT = window.innerHeight,
             dotNum=0,
@@ -66,7 +65,6 @@
             
             var renderCount=0;
             var nodes=data1.nodes;
-            var parentNodes=newdata.nodes;
             var lineChart=data1.now;
   
 			init();
@@ -189,8 +187,8 @@
 
 			function render() {
                 draw();
-                cameraR+=dotNum*0.001;
-                cameraTheta+=dotNum*0.0001;
+                cameraR+=dotNum*0.0001;
+                cameraTheta+=dotNum*0.00001;
 				//camera.position.x += ( mouseX - camera.position.x ) * .05;
 				//camera.position.y += ( - mouseY + 200 - camera.position.y ) * .05;
                 camera.position.x = cameraR*Math.sin(cameraTheta);
@@ -204,16 +202,20 @@
 			}
             
             function draw(){
-             renderCount+=1;   
+            // renderCount+=1;   
              
-            if(dotNum<10000&&renderCount>0)
+            if(dotNum<100000)
                { 
                     // particles
                     dotNum+=1;
-                    renderCount=0;
+                   // renderCount=0;
 
                     var self=nodes[dotNum];
-                    var parent=newNodes["+self.uid+"];
+					var parentID=self.parent;
+					//console.log(parentID)
+					var parent=nodeRef[parentID];
+					//console.log(parent)
+                    
                     
                     var material = new THREE.SpriteMaterial( {
 					color: 0xffffff,
@@ -223,25 +225,20 @@
                     } );
                     
 					particle = new THREE.Sprite( material );
-                    //console.log(particle);
-			//		particle.position.x = Math.random() * 2 - 1;
-			//		particle.position.y = Math.random() * 2 - 1;
-			//		particle.position.z = Math.random() * 2 - 1;
-			//		particle.position.normalize();
-
                     particle.position.x = self.x;
 					particle.position.y = self.y;
 					particle.position.z = self.z;
 
-                    particle.scale.multiplyScalar(self.degree*10 );//the size of the particles
+                    particle.scale.multiplyScalar((self.degree+1)*10 );//the size of the particles
 
-					particle.position.multiplyScalar( 0.1 );//the size scale of the sphere
+					particle.position.multiplyScalar( 0.25 );//the size scale of the sphere
 					
                     
 					scene.add( particle );
                     
                     
-                    // lines
+                   // lines
+					   console.log(parentID)
                     lineNum+=1;
 					var geometry = new THREE.Geometry();
                     
@@ -254,11 +251,17 @@
 //					vertex2.multiplyScalar( Math.random() * 1 + 1 );
                     
                     var vertex2=new THREE.Vector3(parent.x,parent.y,parent.z);
-
+					vertex2.setScalar(0.25);
 					geometry.vertices.push( vertex2 );
 
-					var line = new THREE.Line( geometry, new THREE.LineBasicMaterial( { color: 0xffffff, opacity: Math.random() } ) );
+					 if(parentID=="2395028760"){
+						 var line = new THREE.Line( geometry, new THREE.LineBasicMaterial( { color: 0x0088ff, opacity: Math.random() } ) );
+					}else{
+						var line = new THREE.Line( geometry, new THREE.LineBasicMaterial( { color: 0x99ff00, opacity: Math.random() } ) );
+						}
+					
 					scene.add( line );
+				   
                }
             }
 
@@ -335,7 +338,7 @@
             .attr("cy",y(+lineChart[0].num))      
         
         var lineTimer=0;
-        var myVar = setInterval(myTimer, 1000);
+        var myVar = setInterval(myTimer, 1500);
         var leng=lineChart.length;
 
         function myTimer() {
@@ -343,7 +346,7 @@
                // d3.select("circle").remove();
                 d3.select("circle")
                 .transition()
-                .duration(1000)
+                .duration(1500)
                 .ease(d3.easeLinear)
                 .attr("cx",x(+lineChart[lineTimer].id))
                 .attr("cy",y(+lineChart[lineTimer].num))
