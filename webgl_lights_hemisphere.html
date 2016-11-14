@@ -49,17 +49,20 @@
 		</style>
 	</head>
 	<body>
-        <button id="stop" onclick="stop()">stop camera</button>
+        <!--<button id="stop" onclick="stop()">stop camera</button>-->
 		<div id="container"></div>
-		<div id="info">
+		<!--<div id="info">
 			<a href="http://threejs.org" target="_blank">three.js</a> - webgl hemisphere light example -
 			flamingo by <a href="http://mirada.com/">mirada</a> from <a href="http://ro.me">rome</a><br/>
-		</div>
+		</div>-->
 		<div id="footer">
-			press <strong>h</strong> to toggle hemisphere light, <strong>d</strong> to toggle directional light
+			<p>press s for stop</p>
+			<p>page left,right,up,down for camera orientation</p>
+			<p>i/o for zoom in/out</p>
+			<!--press <strong>h</strong> to toggle hemisphere light, <strong>d</strong> to toggle directional light-->
 		</div>
 
-		<script src="../build/three.js"></script>
+		<script src="./js/three.js"></script>
 
 		<script src="js/Detector.js"></script>
 		<script src="js/libs/stats.min.js"></script>
@@ -105,7 +108,6 @@
 			var mixers = [];
 			var stats;
             var step=1;
-            var flag=1;
 			var clock = new THREE.Clock();
 
 			init();
@@ -167,7 +169,6 @@
 //                                new THREE.MeshBasicMaterial( { map: groundTexture } )
 //                                ];
 				var ground = new THREE.Mesh( groundGeo, groundMat );
-                console.log(ground);
                 
                 //var ground=THREE.SceneUtils.createMultiMaterialObject( groundGeo, groundMats );
 				ground.rotation.x = -(90)*Math.PI/180;
@@ -265,7 +266,7 @@
 //				container.appendChild( stats.dom );
 
 				//
-
+				console.log(scene)
 				window.addEventListener( 'resize', onWindowResize, false );
 				document.addEventListener( 'keydown', onKeyDown, false );
 
@@ -284,14 +285,19 @@
 
 				switch ( event.keyCode ) {
 
-					case 72: // h
+					// case 72: // h
 
-					hemiLight.visible = !hemiLight.visible;
-					break;
+					// hemiLight.visible = !hemiLight.visible;
+					// break;
 
 					case 68: // d
 
 					dirLight.visible = !dirLight.visible;
+					break;
+
+					case 83: // s
+
+					step=!step;
 					break;
 
 				}
@@ -329,10 +335,7 @@
 
 			}
             
-            function stop(){
-                step=(flag)? 0:1;
-                flag=(flag)?0:1;
-            }
+           
 
 		</script>
 	</body>
