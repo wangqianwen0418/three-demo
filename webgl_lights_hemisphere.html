@@ -1,45 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<title>three.js webgl - lights - hemisphere light</title>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-		<style>
-			body {
-				background-color: #fff;
-				color: #111;
-				margin: 0px;
-				overflow: hidden;
-				font-family: Monospace;
-				font-size: 13px;
-			}
-            
-            #stop{
-                position: absolute;
-                left: 20px;
-                top:40px;
-                background-color: #ffffff; 
-                border: none;
-                color: #666;
-                padding: 5px 5px;
-                text-align: center;
-                text-decoration: none;
-                display: inline-block;
-                font-size: 16px;
-            }
 
-			#info {
-				position: absolute;
-				top: 0px; width: 100%;
-				padding: 5px;
-				text-align: center;
-			}
-
-			a {
-				color: #0080ff;
-				text-decoration: none;
-			}
-
+<<<<<<< Updated upstream
 			a:hover {
 				color: #f00;
 			}
@@ -63,11 +25,83 @@
 		</div>
 
 		<script src="./js/three.js"></script>
+=======
+<head>
+	<title>three.js webgl - lights - hemisphere light</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<style>
+		body {
+			background-color: #fff;
+			color: #111;
+			margin: 0px;
+			overflow: hidden;
+			font-family: Monospace;
+			font-size: 13px;
+		}
+		
+		#stop {
+			position: absolute;
+			left: 20px;
+			top: 40px;
+			background-color: #ffffff;
+			border: none;
+			color: #666;
+			padding: 5px 5px;
+			text-align: center;
+			text-decoration: none;
+			display: inline-block;
+			font-size: 16px;
+		}
+		
+		#info {
+			position: absolute;
+			top: 0px;
+			width: 100%;
+			padding: 5px;
+			text-align: center;
+		}
+		
+		a {
+			color: #0080ff;
+			text-decoration: none;
+		}
+		
+		a:hover {
+			color: #f00;
+		}
+		
+		#footer {
+			width: 100%;
+			margin: 2em auto;
+			text-align: center;
+			position: absolute;
+			bottom: 0
+		}
+		
+		strong {
+			color: red
+		}
+	</style>
+</head>
 
-		<script src="js/Detector.js"></script>
-		<script src="js/libs/stats.min.js"></script>
+<body>
+	<div id="container"></div>
+	<!--<div id="info">
+			<a href="http://threejs.org" target="_blank">three.js</a> - webgl hemisphere light example -
+			flamingo by <a href="http://mirada.com/">mirada</a> from <a href="http://ro.me">rome</a><br/>
+		</div>-->
+	<!--<div id="footer">
+			press <strong>h</strong> to toggle hemisphere light, <strong>d</strong> to toggle directional light
+		</div>-->
 
-		<script type="x-shader/x-vertex" id="vertexShader">
+	<script src="js/three.js"></script>
+>>>>>>> Stashed changes
+
+	<script src="js/Detector.js"></script>
+	<script src="js/libs/stats.min.js"></script>
+
+	<script type="x-shader/x-vertex" id="vertexShader">
 
 			varying vec3 vWorldPosition;
 
@@ -82,7 +116,7 @@
 
 		</script>
 
-		<script type="x-shader/x-fragment" id="fragmentShader">
+	<script type="x-shader/x-fragment" id="fragmentShader">
 
 			uniform vec3 topColor;
 			uniform vec3 bottomColor;
@@ -100,15 +134,22 @@
 
 		</script>
 
-		<script>
+	<script>
 
 			if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
-			var camera, scene, renderer, dirLight, hemiLight;
+			var camera, scene, renderer, dirLight, AmbientLight;
 			var mixers = [];
 			var stats;
             var step=1;
+<<<<<<< Updated upstream
+=======
+            var flag=2;
+>>>>>>> Stashed changes
 			var clock = new THREE.Clock();
+			var meshes=[];
+
+			var meshlen=6;
 
 			init();
 			animate();
@@ -126,17 +167,15 @@
 
 				// LIGHTS
 
-				hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 0.6 );
-				hemiLight.color.setHSL( 0.6, 1, 0.6 );
-				hemiLight.groundColor.setHSL( 0.095, 1, 0.75 );
-				hemiLight.position.set( 0, 500, 0 );
-				scene.add( hemiLight );
+				AmbientLight=new THREE.AmbientLight(0xffffff,0.1);
+				scene.add( AmbientLight );
 
 				//
 
-				dirLight = new THREE.DirectionalLight( 0xffffff, 1 );
-				dirLight.color.setHSL( 0.1, 1, 0.95 );
-				dirLight.position.set( -1, 1.75, 1 );
+				//dirLight = new THREE.DirectionalLight( 0xffffff, 1 );
+				dirLight = new THREE.PointLight( 0xffffff, 0.1 );
+				dirLight.color.setRGB( 1, 1, 1 );
+				dirLight.position.set( 20, 10, 1 );
 				dirLight.position.multiplyScalar( 50 );
 				scene.add( dirLight );
 
@@ -145,7 +184,7 @@
 				dirLight.shadow.mapSize.width = 2048;
 				dirLight.shadow.mapSize.height = 2048;
 
-				var d = 200;
+				var d = 1000;
 
 				dirLight.shadow.camera.left = -d;
 				dirLight.shadow.camera.right = d;
@@ -153,15 +192,15 @@
 				dirLight.shadow.camera.bottom = -d;
 
 				dirLight.shadow.camera.far = 3500;
-				dirLight.shadow.bias = -0.0001;
+				//dirLight.shadow.bias = -0.0001;
 
-				// GROUND
+				// GROUND sea
                 var groundTexture=new THREE.TextureLoader().load( 'textures/water2.jpg' );
                 groundTexture.wrapS = THREE.RepeatWrapping;
                 groundTexture.wrapT = THREE.RepeatWrapping;
-                groundTexture.repeat.set( 90, 90 );
+                groundTexture.repeat.set( 20, 20 );
                 
-				var groundGeo = new THREE.PlaneBufferGeometry( 10000, 10000 );
+				var groundGeo = new THREE.PlaneGeometry( 2000, 2000 );
 				var groundMat = new THREE.MeshPhongMaterial( { color: 0xffffff, specular: 0x050505,map: groundTexture } );
 				groundMat.color.setHSL( 0.095, 0.5, 2 );
                 
@@ -177,17 +216,41 @@
 
 				ground.receiveShadow = true;
 
+				// GROUND sand
+              //  var sandTexture=new THREE.TextureLoader().load( 'textures/water2.jpg' );
+              //  groundTexture.wrapS = THREE.RepeatWrapping;
+              //  groundTexture.wrapT = THREE.RepeatWrapping;
+             //   groundTexture.repeat.set( 90, 90 );
+                
+				var sandGeo = new THREE.PlaneGeometry( 3000, 2000 );
+				var sandTexture=new THREE.TextureLoader().load( 'textures/Sand-Texture.jpg' );
+                sandTexture.wrapS = THREE.RepeatWrapping;
+                sandTexture.wrapT = THREE.RepeatWrapping;
+                sandTexture.repeat.set( 3, 1);
+				var sandMat = new THREE.MeshPhongMaterial( { color: 0xffffff, specular: 0x050505, map:sandTexture} );
+				
+            
+				var sand = new THREE.Mesh( sandGeo, sandMat );
+                
+                //var ground=THREE.SceneUtils.createMultiMaterialObject( groundGeo, groundMats );
+				sand.rotation.x = -(90)*Math.PI/180;
+				sand.position.y = -25;
+				sand.position.x = -2500;
+				scene.add( sand );
+
+				sand.receiveShadow = true;
+
 				// SKYDOME
 
 				var vertexShader = document.getElementById( 'vertexShader' ).textContent;
 				var fragmentShader = document.getElementById( 'fragmentShader' ).textContent;
 				var uniforms = {
 					topColor:    { value: new THREE.Color( 0x003399 ) },
-					bottomColor: { value: new THREE.Color( 0xff8888) },
+					bottomColor: { value: new THREE.Color( 0x998888) },
 					offset:      { value: 50 },
 					exponent:    { value: 0.25 }
 				};
-				//uniforms.topColor.value.copy( hemiLight.color );
+				//uniforms.topColor.value.copy( AmbientLight.color );
 
 				//scene.fog.color.copy( uniforms.bottomColor.value );
 
@@ -202,49 +265,101 @@
 				var loader = new THREE.JSONLoader();
 
 				loader.load( 'models/animated/flamingo.js', function( geometry ) {
+					
+
                     
                     geometry.computeVertexNormals();
 					geometry.computeMorphNormals();
                     
-                    var flamingoTexture=new THREE.TextureLoader().load( 'textures/flamingo_illustration.jpg' );
-                    flamingoTexture.wrapS = THREE.RepeatWrapping;
-                    flamingoTexture.wrapT = THREE.RepeatWrapping;
-                    flamingoTexture.repeat.set( 50, 50 );
+                   // var flamingoTexture=new THREE.TextureLoader().load( 'textures/flamingo_illustration.jpg' );
+                   // flamingoTexture.wrapS = THREE.RepeatWrapping;
+                   // flamingoTexture.wrapT = THREE.RepeatWrapping;
+                   // flamingoTexture.repeat.set( 50, 50 );
                     
 					var material = new THREE.MeshPhongMaterial( {
 						color: 0xffffff, 
-                        specular: 0x050505,
-                        shininess:100,
+                       // specular: 0x050505,
+                       // shininess:100,
 						morphTargets: true,
 						morphNormals: true,
 						vertexColors: THREE.FaceColors,
 						shading: THREE.SmoothShading,
                        // map: flamingoTexture
 					} );
-					var mesh = new THREE.Mesh( geometry, material );
                     
-                    for(var i=0;i<6;i++){
+                    for(var i=0;i<meshlen;i++){
+					
                         var mesh = new THREE.Mesh( geometry, material );
 
-                        var s = 0.2+i*0.05;
+                        var s = 0.2+i*0.01;
                         mesh.scale.set( s, s, s );
                         mesh.position.y = 5;
-                        mesh.rotation.y = -1;
+                        mesh.rotation.y = -90*Math.PI/180;
+						mesh.position.z = -10;
                         mesh.position.x=-90+55*i;
                         
                         mesh.castShadow = true;
                         mesh.receiveShadow = true;
 
                         scene.add( mesh );
+						meshes.push(mesh);
 
-                        var mixer = new THREE.AnimationMixer( mesh );
-                        mixer.clipAction( geometry.animations[ 0 ] ).setDuration( 0.8+0.2*i ).play();
-                        mixers.push( mixer );
+                       // var mixer = new THREE.AnimationMixer( mesh );
+                       // mixer.clipAction( geometry.animations[ 0 ] ).setDuration( 0.8+0.2*i ).play();
+                       // mixers.push( mixer );
+					   
+					   var mixer = new THREE.AnimationMixer( mesh );
+					   var clip = THREE.AnimationClip.CreateFromMorphTargetSequence( 'gallop', geometry.morphTargets, 50 );
+					   mixer.clipAction( clip ).setDuration( 0.8+0.2*Math.random() ).play();
+					   mixers.push( mixer );
                     }
 
-				} );
-                
-               
+				//another 
+
+					var geometry2=new THREE.IcosahedronGeometry(10, 2);
+					
+				//	for(var i=0;i<6;i++){
+				//		var vertices = [];
+				//		for ( var v = 0; v < geometry2.vertices.length; v ++ ) {
+				//			vertices.push( geometry2.vertices[ v ].clone() );
+				//				//vertices[ vertices.length - 1 ].x *= 2;
+				//				vertices[ vertices.length - 1 ].x *= 10*Math.abs(i-2.5);
+				//				//vertices[ vertices.length - 1 ].z *= 2;
+				//		}
+				//		geometry2.morphTargets.push( { name: "target" + i, vertices: vertices } );
+				//	}
+					
+
+					var material2 = new THREE.MeshPhongMaterial( {
+						color: 0xffffff, 
+                        specular: 0x050505,
+                        shininess:100,
+						vertexColors: THREE.FaceColors,
+						shading: THREE.SmoothShading
+					} );
+
+					var mesh=new THREE.Mesh( geometry2, material2 );
+					mesh.scale.set( 1, 1, 1 );
+					mesh.position.y = 5;
+					mesh.rotation.y = -90*Math.PI/180;
+					mesh.position.z = -10;
+					mesh.position.x=-800;
+
+					mesh.castShadow = true;
+                    mesh.receiveShadow = true;
+					
+					scene.add(mesh)
+					meshes.push(mesh)
+
+					var mixer = new THREE.AnimationMixer( mesh );
+					var clip = THREE.AnimationClip.CreateFromMorphTargetSequence( 'gallop', geometry2.morphTargets, 3 );
+					mixer.clipAction( clip ).setDuration( 0.8+0.2*Math.random() ).play();
+					mixer._accuIndex=1;
+					mixers.push( mixer );
+					console.log(mixers)				
+
+				
+				} );               
 
 				// RENDERER
 
@@ -269,11 +384,11 @@
 				console.log(scene)
 				window.addEventListener( 'resize', onWindowResize, false );
 				document.addEventListener( 'keydown', onKeyDown, false );
+				
 
 			}
 
 			function onWindowResize() {
-
 				camera.aspect = window.innerWidth / window.innerHeight;
 				camera.updateProjectionMatrix();
 
@@ -287,19 +402,56 @@
 
 					// case 72: // h
 
+<<<<<<< Updated upstream
 					// hemiLight.visible = !hemiLight.visible;
 					// break;
+=======
+					AmbientLight.visible = !AmbientLight.visible;
+					break;
+>>>>>>> Stashed changes
 
 					case 68: // d
 
 					dirLight.visible = !dirLight.visible;
 					break;
 
+<<<<<<< Updated upstream
 					case 83: // s
 
 					step=!step;
 					break;
 
+=======
+					case 48: // 0
+					flag=0;
+					step=!step;
+					break;
+
+					case 49: // 1
+					flag=1;
+					break;
+
+					case 50: // 2
+					flag=2;
+					break;
+
+					case 51: // 3
+					flag=3;
+					break;
+
+					case 52: // 4
+					flag=4;
+					break;
+
+					case 53: // 5
+					flag=5;
+					break;
+
+					case 54: // 6
+					flag=6;
+					break;
+
+>>>>>>> Stashed changes
 				}
 
 			}
@@ -316,7 +468,21 @@
 			}
 
 			function render() {
+				//light
+				if(dirLight.position.x-camera.position.x>3){
+					dirLight.position.x-=5*step;	
+				}
+				else{
+					dirLight.position.x=camera.position.x
+				}
+				if(dirLight.intensity<1){
+					dirLight.intensity+=0.005;
+				}
 
+				if(AmbientLight.intensity<0.4){
+					AmbientLight.intensity+=0.003;
+				}
+				//mesh track
 				var delta = clock.getDelta();
 
 				for ( var i = 0; i < mixers.length; i ++ ) {
@@ -324,19 +490,77 @@
 					mixers[ i ].update( delta );
 
 				}
-                
-               camera.position.x +=  step;
+
+				
+				for ( var i = 0; i < meshlen; i ++ ) {
+					var px=meshes[ i ].position.x, py=meshes[ i ].position.y;
+					meshes[ i ].position.x-=step;
+					if(Math.abs(px-meshes[meshlen].position.x)<60){
+						meshes[i].position.y=5+25*Math.cos(0.5*Math.PI*(px-meshes[meshlen].position.x)/60)
+					}
+					else{
+						meshes[i].position.y=4*Math.cos(px/5);
+					}
+				}
+				
+
+				meshes[meshlen].position.x+=step;
+				
+				//meshes[meshlen].position.y=4*Math.cos(meshes[meshlen].position.x/5);
+				//meshes[meshlen].rotation.x+=0.5*step
+
+				//mesh avoid each other
+				for ( var i = 0; i < meshlen; i ++ ) {
+					
+					
+				}
+				
+                //camera
+               switch ( flag ) {
+
+					case 0: // h
+					break;
+
+					case 1: // d
+					camera.position.x+=step;
+					break;
+
+					case 2: // d
+					camera.position.x-=step;
+					break;
+
+					case 3: // d
+					camera.position.y+=step;
+					break;
+
+					case 4: // d
+					camera.position.y-=step;
+					break;
+
+					case 5: // d
+					camera.position.z+=step;
+					break;
+
+					case 6: // d
+					camera.position.z-=step;
+					break;
+
+				}
 //				camera.position.y += -3;
 
-				camera.lookAt( scene.position );
+				//camera.lookAt( scene.position );
 
 
 				renderer.render( scene, camera );
 
 			}
             
+<<<<<<< Updated upstream
            
+=======
+>>>>>>> Stashed changes
 
 		</script>
-	</body>
+</body>
+
 </html>
