@@ -1,31 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<<<<<<< Updated upstream
-			a:hover {
-				color: #f00;
-			}
-
-			#footer { width: 100%; margin: 2em auto; text-align: center; position: absolute; bottom: 0 }
-			strong { color: red }
-		</style>
-	</head>
-	<body>
-        <!--<button id="stop" onclick="stop()">stop camera</button>-->
-		<div id="container"></div>
-		<!--<div id="info">
-			<a href="http://threejs.org" target="_blank">three.js</a> - webgl hemisphere light example -
-			flamingo by <a href="http://mirada.com/">mirada</a> from <a href="http://ro.me">rome</a><br/>
-		</div>-->
-		<div id="footer">
-			<p>press s for stop</p>
-			<p>page left,right,up,down for camera orientation</p>
-			<p>i/o for zoom in/out</p>
-			<!--press <strong>h</strong> to toggle hemisphere light, <strong>d</strong> to toggle directional light-->
-		</div>
-
-		<script src="./js/three.js"></script>
-=======
 <head>
 	<title>three.js webgl - lights - hemisphere light</title>
 	<meta charset="utf-8">
@@ -96,7 +70,6 @@
 		</div>-->
 
 	<script src="js/three.js"></script>
->>>>>>> Stashed changes
 
 	<script src="js/Detector.js"></script>
 	<script src="js/libs/stats.min.js"></script>
@@ -142,10 +115,7 @@
 			var mixers = [];
 			var stats;
             var step=1;
-<<<<<<< Updated upstream
-=======
             var flag=2;
->>>>>>> Stashed changes
 			var clock = new THREE.Clock();
 			var meshes=[];
 
@@ -400,22 +370,12 @@
 
 				switch ( event.keyCode ) {
 
-					// case 72: // h
-
-<<<<<<< Updated upstream
-					// hemiLight.visible = !hemiLight.visible;
-					// break;
-=======
-					AmbientLight.visible = !AmbientLight.visible;
-					break;
->>>>>>> Stashed changes
-
 					case 68: // d
 
 					dirLight.visible = !dirLight.visible;
 					break;
 
-<<<<<<< Updated upstream
+
 					case 83: // s
 
 					step=!step;
@@ -450,8 +410,6 @@
 					case 54: // 6
 					flag=6;
 					break;
-
->>>>>>> Stashed changes
 				}
 
 			}
@@ -555,10 +513,6 @@
 
 			}
             
-<<<<<<< Updated upstream
-           
-=======
->>>>>>> Stashed changes
 
 		</script>
 </body>
