@@ -1,0 +1,740 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title>three.js webgl - lights - hemisphere light</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+	<style>
+		body {
+			background-color: #fff;
+			color: #111;
+			margin: 0px;
+			overflow: hidden;
+			font-family: Monospace;
+			font-size: 13px;
+		}
+		
+		#stop {
+			position: absolute;
+			left: 20px;
+			top: 40px;
+			background-color: #ffffff;
+			border: none;
+			color: #666;
+			padding: 5px 5px;
+			text-align: center;
+			text-decoration: none;
+			display: inline-block;
+			font-size: 16px;
+		}
+		
+		#info {
+			position: absolute;
+			top: 0px;
+			width: 100%;
+			padding: 5px;
+			text-align: center;
+		}
+		
+		a {
+			color: #0080ff;
+			text-decoration: none;
+		}
+		
+		a:hover {
+			color: #f00;
+		}
+		
+		#footer {
+			width: 100%;
+			margin: 2em auto;
+			text-align: center;
+			position: absolute;
+			bottom: 0
+		}
+		
+		strong {
+			color: red
+		}
+	</style>
+</head>
+
+<body>
+	<div id="container"></div>
+    <script src="js/three.js"></script>
+	<script src="js/Detector.js"></script>
+	<script src="js/libs/stats.min.js"></script>   
+
+    <script type="x-shader/x-vertex" id="vertexShader">
+        varying vec3 vWorldPosition;
+
+        void main() {
+
+        vec4 worldPosition = modelMatrix * vec4( position, 1.0 );
+        vWorldPosition = worldPosition.xyz;
+
+        gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+
+        }
+
+    </script>
+
+    <script type="x-shader/x-vertex" id="vertexShader2">
+        uniform sampler2D noiseTexture;
+        uniform float noiseScale;
+
+        uniform sampler2D bumpTexture;
+        uniform float bumpSpeed;
+        uniform float bumpScale;
+
+        uniform float time;
+
+        varying vec2 vUv;        
+
+        void main() {        
+
+        vUv = uv;
+
+        vec2 uvTimeShift = vUv + vec2( 1.1, 1.9 ) * time * bumpSpeed;
+        vec4 noiseGeneratorTimeShift = texture2D( noiseTexture, uvTimeShift );
+        vec2 uvNoiseTimeShift = vUv + noiseScale * vec2( noiseGeneratorTimeShift.r, noiseGeneratorTimeShift.g );
+
+        //using uvTimeShift seems to result in more of a "rippling" effect, while uvNoiseTimeShift seems to result in more of a "shivering" effect
+        vec4 bumpData = texture2D( bumpTexture, uvTimeShift );
+
+        // move the position along the normal,but displace the vertices at the poles by the same amount
+        float displacement = ( vUv.y > 0.999 || vUv.y < 0.001 ) ? bumpScale * (0.3 + 0.02 * sin(time)) : bumpScale * bumpData.r;
+
+        vec3 newPosition = position + normal * displacement;
+
+        gl_Position = projectionMatrix * modelViewMatrix * vec4( newPosition, 1.0 );       
+
+        }
+
+    </script>
+
+    <script id="vertexShader3" type="x-shader/x-vertex">
+        uniform sampler2D bumpTexture;
+        uniform float bumpScale;
+
+        varying float vAmount;
+        varying vec2 vUV;
+
+        void main()
+        {
+        vUV = uv;
+        vec4 bumpData = texture2D( bumpTexture, uv );
+
+        vAmount = bumpData.r; // assuming map is grayscale it doesn't matter if you use r, g, or b.
+
+        // move the position along the normal
+        vec3 newPosition = position + normal * bumpScale * vAmount;
+
+        gl_Position = projectionMatrix * modelViewMatrix * vec4( newPosition, 1.0 );
+        }
+    </script>
+
+    <script type="x-shader/x-fragment" id="fragmentShader">
+        uniform vec3 topColor;
+        uniform vec3 bottomColor;
+        uniform float offset;
+        uniform float exponent;
+
+        varying vec3 vWorldPosition;
+
+        void main() {
+
+        float h = normalize( vWorldPosition + offset ).y;
+        gl_FragColor = vec4( mix( bottomColor, topColor, max( pow( max( h , 0.0), exponent ), 0.0 ) ), 1.0 );
+
+        }
+
+    </script>
+
+    <script type="x-shader/x-fragment" id="fragmentShader2">
+
+        uniform sampler2D baseTexture;
+        uniform float baseSpeed;
+        uniform float repeatS;
+        uniform float repeatT;
+
+        uniform sampler2D noiseTexture;
+        uniform float noiseScale;
+
+        uniform sampler2D blendTexture;
+        uniform float blendSpeed;
+        uniform float blendOffset;
+
+        uniform float time;
+        uniform float alpha;
+
+        varying vec2 vUv;        
+
+        void main() {       
+
+        vec2 uvTimeShift = vUv + vec2( -0.7, 1.5 ) * time * baseSpeed;
+        vec4 noiseGeneratorTimeShift = texture2D( noiseTexture, uvTimeShift );
+        vec2 uvNoiseTimeShift = vUv + noiseScale * vec2( noiseGeneratorTimeShift.r, noiseGeneratorTimeShift.b );
+        vec4 baseColor = texture2D( baseTexture, uvNoiseTimeShift * vec2(repeatS, repeatT) );
+
+        vec2 uvTimeShift2 = vUv + vec2( 1.3, -1.7 ) * time * blendSpeed;
+        vec4 noiseGeneratorTimeShift2 = texture2D( noiseTexture, uvTimeShift2 );
+        vec2 uvNoiseTimeShift2 = vUv + noiseScale * vec2( noiseGeneratorTimeShift2.g, noiseGeneratorTimeShift2.b );
+        vec4 blendColor = texture2D( blendTexture, uvNoiseTimeShift2 * vec2(repeatS, repeatT) ) - blendOffset * vec4(1.0, 1.0, 1.0, 1.0);
+
+        vec4 theColor = baseColor + blendColor;
+        theColor.a = alpha;
+        gl_FragColor = theColor;
+
+        }
+
+    </script>
+
+    <script id="fragmentShader3" type="x-shader/x-vertex">
+        uniform sampler2D oceanTexture;
+        uniform sampler2D sandyTexture;
+        uniform sampler2D grassTexture;
+        uniform sampler2D rockyTexture;
+        uniform sampler2D snowyTexture;
+
+        varying vec2 vUV;
+
+        varying float vAmount;
+
+        void main()
+        {
+        vec4 water = (smoothstep(0.01, 0.25, vAmount) - smoothstep(0.24, 0.26, vAmount)) * texture2D( oceanTexture, vUV * 10.0 );
+        vec4 sandy = (smoothstep(0.24, 0.27, vAmount) - smoothstep(0.28, 0.31, vAmount)) * texture2D( sandyTexture, vUV * 10.0 );
+        vec4 grass = (smoothstep(0.28, 0.32, vAmount) - smoothstep(0.35, 0.40, vAmount)) * texture2D( grassTexture, vUV * 20.0 );
+        vec4 rocky = (smoothstep(0.30, 0.50, vAmount) - smoothstep(0.40, 0.70, vAmount)) * texture2D( rockyTexture, vUV * 20.0 );
+        vec4 snowy = (smoothstep(0.50, 0.65, vAmount))                                   * texture2D( snowyTexture, vUV * 10.0 );
+        gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0) + water + sandy + grass + rocky + snowy; //, 1.0);
+        }
+    </script>
+
+	<script>
+
+			if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+
+			var camera, scene, renderer, dirLight, AmbientLight;
+			var mixers = [];
+			var stats;
+            var step=1;
+            var flag=2;
+            var clock = new THREE.Clock();
+			var meshes=[];
+
+			var meshlen=6;
+
+			init();
+			animate();
+
+			function init() {
+				var container = document.getElementById( 'container' );
+
+				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 5000 );
+				camera.position.set( 0, 65, 250 );
+
+				scene = new THREE.Scene();
+
+				scene.fog = new THREE.Fog( 0xffffff, 1, 5000 );
+				scene.fog.color.setHSL( 0.6, 0, 1 );
+
+				// LIGHTS
+
+				AmbientLight=new THREE.AmbientLight(0xffffff,0.1);
+				scene.add( AmbientLight );
+
+				
+
+				//dirLight = new THREE.DirectionalLight( 0xffffff, 1 );
+				dirLight = new THREE.PointLight( 0xffffff, 0.1 );				
+				dirLight.position.set( 20, 10, 1 );
+				dirLight.position.multiplyScalar( 50 );
+				scene.add( dirLight );
+
+				dirLight.castShadow = true;
+
+				dirLight.shadow.mapSize.width = 2048;
+				dirLight.shadow.mapSize.height = 2048;
+
+				var d = 1000;
+
+				dirLight.shadow.camera.left = -d;
+				dirLight.shadow.camera.right = d;
+				dirLight.shadow.camera.top = d;
+				dirLight.shadow.camera.bottom = -d;
+
+				dirLight.shadow.camera.far = 3500;
+				//dirLight.shadow.bias = -0.0001;
+
+				// GROUND sea
+				var groundTexture = new THREE.TextureLoader().load('textures/water2.jpg');
+                groundTexture.wrapS = THREE.RepeatWrapping;
+                groundTexture.wrapT = THREE.RepeatWrapping;
+                groundTexture.repeat.set( 20, 20 );
+                
+				var groundGeo = new THREE.PlaneGeometry( 2000, 2000 );
+				var groundMat = new THREE.MeshPhongMaterial({ color: 0xffffff, specular: 0x050505, map: groundTexture, transparent: true, opacity: 0.70 });
+				groundMat.color.setHSL( 0.095, 0.5, 2 );
+                
+//                var groundMats = [new THREE.MeshPhongMaterial( { color: 0xffffff, specular: 0x050505 } ),
+//                                new THREE.MeshBasicMaterial( { map: groundTexture } )
+//                                ];
+				var ground = new THREE.Mesh( groundGeo, groundMat );
+                
+                //var ground=THREE.SceneUtils.createMultiMaterialObject( groundGeo, groundMats );
+				ground.rotation.x = -(90)*Math.PI/180;
+				ground.position.y = 0; //-50
+				scene.add( ground );
+
+				ground.receiveShadow = true;
+
+				// GROUND sand
+              //  var sandTexture=new THREE.TextureLoader().load( 'textures/water2.jpg' );
+              //  groundTexture.wrapS = THREE.RepeatWrapping;
+              //  groundTexture.wrapT = THREE.RepeatWrapping;
+			    //   groundTexture.repeat.set( 90, 90 );
+
+				var sandGeo = new THREE.PlaneGeometry(3000, 2000);
+				var sandTexture = new THREE.TextureLoader().load('textures/Sand-Texture.jpg');
+				sandTexture.wrapS = THREE.RepeatWrapping;
+				sandTexture.wrapT = THREE.RepeatWrapping;
+				sandTexture.repeat.set(3, 1);
+				var sandMat = new THREE.MeshPhongMaterial({ color: 0xffffff, specular: 0x050505 }); //, map: sandTexture
+
+
+				var sand = new THREE.Mesh(sandGeo, sandMat);
+
+			    //var ground=THREE.SceneUtils.createMultiMaterialObject( groundGeo, groundMats );
+				sand.rotation.x = -(90) * Math.PI / 180;
+				sand.position.y = -5; //-55
+				sand.position.x = -2500;
+				scene.add(sand);
+
+				sand.receiveShadow = true;
+
+
+			    // texture used to generate "bumpiness" or height
+				var bumpTexture = new THREE.ImageUtils.loadTexture('textures/heightmap2.png');
+				bumpTexture.wrapS = bumpTexture.wrapT = THREE.RepeatWrapping;
+
+			    // magnitude of normal displacement
+				var bumpScale = 200.0;
+
+				var oceanTexture = new THREE.ImageUtils.loadTexture('textures/dirt-512.jpg');
+				oceanTexture.wrapS = oceanTexture.wrapT = THREE.RepeatWrapping;
+
+				var sandyTexture = new THREE.ImageUtils.loadTexture('textures/sand-512.jpg');
+				sandyTexture.wrapS = sandyTexture.wrapT = THREE.RepeatWrapping;
+
+				var grassTexture = new THREE.ImageUtils.loadTexture('textures/grass-512.jpg');
+				grassTexture.wrapS = grassTexture.wrapT = THREE.RepeatWrapping;
+
+				var rockyTexture = new THREE.ImageUtils.loadTexture('textures/rock-512.jpg');
+				rockyTexture.wrapS = rockyTexture.wrapT = THREE.RepeatWrapping;
+
+				var snowyTexture = new THREE.ImageUtils.loadTexture('textures/snow-512.jpg');
+				snowyTexture.wrapS = snowyTexture.wrapT = THREE.RepeatWrapping;
+                		    
+				this.customUniforms_2 = {
+				    bumpTexture: { type: "t", value: bumpTexture },
+				    bumpScale: { type: "f", value: bumpScale },
+				    oceanTexture: { type: "t", value: oceanTexture },
+				    sandyTexture: { type: "t", value: sandyTexture },
+				    grassTexture: { type: "t", value: grassTexture },
+				    rockyTexture: { type: "t", value: rockyTexture },
+				    snowyTexture: { type: "t", value: snowyTexture },
+				};
+
+			    // create custom material from the shader code above
+			    //   that is within specially labelled script tags
+				var customMaterial_2 = new THREE.ShaderMaterial(
+                {
+                    uniforms: customUniforms_2,
+                    vertexShader: document.getElementById('vertexShader3').textContent,
+                    fragmentShader: document.getElementById('fragmentShader3').textContent,
+                    
+                });
+
+				var planeGeo = new THREE.PlaneGeometry(3000, 2000, 100, 100); //PlaneGeometry(width, height, widthSegments, heightSegments)
+				var plane = new THREE.Mesh(planeGeo, customMaterial_2);
+				plane.rotation.x = -(90) * Math.PI / 180;
+				plane.position.y = -65; //-115
+				plane.position.x = -2500;
+				scene.add(plane);
+				plane.receiveShadow = true;
+
+				//plane.rotation.x = -Math.PI / 2;
+			    //plane.position.y = -100;	
+				var waterGeo = new THREE.PlaneGeometry(3000, 2000, 1, 1);
+				var waterTex = new THREE.ImageUtils.loadTexture('textures/water2.jpg');
+				waterTex.wrapS = waterTex.wrapT = THREE.RepeatWrapping;
+				waterTex.repeat.set(5, 5);
+
+				var waterMat = new THREE.MeshBasicMaterial({ map: waterTex, transparent: true, opacity: 0.7 });
+				var water = new THREE.Mesh(planeGeo, waterMat);
+				water.rotation.x = -(90) * Math.PI / 180;
+				water.position.y = 0; //-50
+				water.position.x = -2500;				
+				scene.add(water);
+				water.receiveShadow = true;
+				
+
+				// SKYDOME
+
+				var vertexShader = document.getElementById( 'vertexShader' ).textContent;
+				var fragmentShader = document.getElementById( 'fragmentShader' ).textContent;
+				var uniforms = {
+					topColor:    { value: new THREE.Color( 0x003399 ) },
+					bottomColor: { value: new THREE.Color( 0x998888) },
+					offset:      { value: 50 },
+					exponent:    { value: 0.25 }
+				};
+				//uniforms.topColor.value.copy( AmbientLight.color );
+
+				//scene.fog.color.copy( uniforms.bottomColor.value );
+
+				var skyGeo = new THREE.SphereGeometry( 4000, 320, 150 );
+				var skyMat = new THREE.ShaderMaterial( { vertexShader: vertexShader, fragmentShader: fragmentShader, uniforms: uniforms, side: THREE.DoubleSide } );
+
+				var sky = new THREE.Mesh( skyGeo, skyMat );
+				scene.add( sky );
+
+				// MODEL
+
+				var loader = new THREE.JSONLoader();
+
+				loader.load( 'models/animated/flamingo.js', function( geometry ) {
+                    
+                    geometry.computeVertexNormals();
+                    geometry.computeMorphNormals();
+
+                    
+                   // var flamingoTexture=new THREE.TextureLoader().load( 'textures/flamingo_illustration.jpg' );
+                   // flamingoTexture.wrapS = THREE.RepeatWrapping;
+                   // flamingoTexture.wrapT = THREE.RepeatWrapping;
+                   // flamingoTexture.repeat.set( 50, 50 );
+                    
+					var material = new THREE.MeshPhongMaterial( {
+						color: 0xffffff, 
+                       // specular: 0x050505,
+                       // shininess:100,
+						morphTargets: true,
+						morphNormals: true,
+						vertexColors: THREE.FaceColors,
+						shading: THREE.SmoothShading,
+                       // map: flamingoTexture
+					} );
+					var mesh = new THREE.Mesh(geometry, material);
+                    
+                    for(var i=0;i<meshlen;i++){
+					
+                        var mesh = new THREE.Mesh( geometry, material );
+                        0
+                        var s = 0.2+i*0.01;
+                        mesh.scale.set( s, s, s );
+                        mesh.position.y = 50; //5
+                        mesh.rotation.y = -90*Math.PI/180;
+						mesh.position.z = -10;
+                        mesh.position.x=-90+55*i;
+                        
+                        mesh.castShadow = true;
+                        mesh.receiveShadow = true;
+
+                        scene.add( mesh );
+						meshes.push(mesh);
+
+                       // var mixer = new THREE.AnimationMixer( mesh );
+                       // mixer.clipAction( geometry.animations[ 0 ] ).setDuration( 0.8+0.2*i ).play();
+                       // mixers.push( mixer );
+					   
+					   var mixer = new THREE.AnimationMixer( mesh );
+					   var clip = THREE.AnimationClip.CreateFromMorphTargetSequence( 'gallop', geometry.morphTargets, 60 );
+					   mixer.clipAction( clip ).setDuration( 0.8+0.2*Math.random() ).play();
+					   mixers.push( mixer );
+                    }
+
+				//another 
+
+                  //var geometry2 = new THREE.IcosahedronGeometry(10, 2);
+				  var ballGeometry = new THREE.SphereGeometry(8, 64, 64);
+                    
+					
+				//	for(var i=0;i<6;i++){
+				//		var vertices = [];
+				//		for ( var v = 0; v < geometry2.vertices.length; v ++ ) {
+				//			vertices.push( geometry2.vertices[ v ].clone() );
+				//				//vertices[ vertices.length - 1 ].x *= 2;
+				//				vertices[ vertices.length - 1 ].x *= 10*Math.abs(i-2.5);
+				//				//vertices[ vertices.length - 1 ].z *= 2;
+				//		}
+				//		geometry2.morphTargets.push( { name: "target" + i, vertices: vertices } );
+				//	}
+					
+				  var lavatexture = new THREE.TextureLoader().load('textures/lava.jpg');
+				  lavatexture.wrapS = THREE.RepeatWrapping;
+				  lavatexture.wrapT = THREE.RepeatWrapping;
+				  var baseSpeed = 1;
+				  var repeatS = repeatT = 4.0;
+
+				  var noiseTexture = new THREE.TextureLoader().load('textures/cloud.png');
+				  noiseTexture.wrapS = THREE.RepeatWrapping;
+				  noiseTexture.wrapT = THREE.RepeatWrapping;
+				  var noiseScale = 0.5;
+
+				  var blendTexture = new THREE.TextureLoader().load('textures/lava.jpg');
+				  blendTexture.wrapS = THREE.RepeatWrapping;
+				  blendTexture.wrapT = THREE.RepeatWrapping;
+				  var blendSpeed = 0.2;
+				  var blendOffset = 0.25;
+
+				  var bumpTexture = new THREE.TextureLoader().load('textures/cloud.png');
+				  bumpTexture.wrapS = THREE.RepeatWrapping;
+				  bumpTexture.wrapT = THREE.RepeatWrapping;
+				  var bumpSpeed = 3.0;
+				  var bumpScale = 15.0;
+
+				  this.customUniforms_1 = {
+				      baseTexture: { type: "t", value: lavatexture },
+				      baseSpeed: { type: "f", value: baseSpeed },
+				      repeatS: { type: "f", value: repeatS },
+				      repeatT: { type: "f", value: repeatT },
+				      noiseTexture: { type: "t", value: noiseTexture },
+				      noiseScale: { type: "f", value: noiseScale },
+				      blendTexture: { type: "t", value: blendTexture },
+				      blendSpeed: { type: "f", value: blendSpeed },
+				      blendOffset: { type: "f", value: blendOffset },
+				      bumpTexture: { type: "t", value: bumpTexture },
+				      bumpSpeed: { type: "f", value: bumpSpeed },
+				      bumpScale: { type: "f", value: bumpScale },
+				      alpha: { type: "f", value: 1.0 },
+				      time: { type: "f", value: 1.0 }
+				  };
+
+					var material2 = new THREE.ShaderMaterial(
+                        {
+                            uniforms: customUniforms_1,
+                            vertexShader: document.getElementById('vertexShader2').textContent,
+                            fragmentShader: document.getElementById('fragmentShader2').textContent
+                        });
+
+                   /* var material2 = new THREE.MeshPhongMaterial({
+                        color: 0xffffff,
+                        specular: 0x050505,
+                        shininess: 100,
+                        vertexColors: THREE.FaceColors,
+                        shading: THREE.SmoothShading
+                    }); */
+
+                    var mesh = new THREE.Mesh(ballGeometry, material2);
+                    //mesh.scale.set(1, 1, 1);
+                    mesh.position.y = 50; //5
+                    mesh.rotation.y = -90 * Math.PI / 180;
+                    mesh.position.z = -10;
+                    mesh.position.x = -800;
+
+                    mesh.castShadow = true;
+                    mesh.receiveShadow = true;
+					
+					scene.add(mesh)
+					meshes.push(mesh)
+
+					//var mixer = new THREE.AnimationMixer( mesh );
+					//var clip = THREE.AnimationClip.CreateFromMorphTargetSequence( 'gallop', geometry2.morphTargets, 3 );
+					//mixer.clipAction( clip ).setDuration( 0.8+0.2*Math.random() ).play();
+					//mixer._accuIndex=1;
+					//mixers.push( mixer );
+				    //console.log(mixers)	
+
+
+				});
+
+			    
+
+
+				// RENDERER
+
+				renderer = new THREE.WebGLRenderer( { antialias: true } );
+				renderer.setClearColor( scene.fog.color );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				container.appendChild( renderer.domElement );
+
+				renderer.gammaInput = true;
+				renderer.gammaOutput = true;
+
+				renderer.shadowMap.enabled = true;
+				renderer.shadowMap.renderReverseSided = false;			    
+
+
+				window.addEventListener( 'resize', onWindowResize, false );
+				document.addEventListener( 'keydown', onKeyDown, false );
+				
+
+			}
+
+			function onWindowResize() {
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+			function onKeyDown ( event ) {
+
+				switch ( event.keyCode ) {
+
+					case 72: // h
+
+					AmbientLight.visible = !AmbientLight.visible;
+					break;
+
+					case 68: // d
+
+					dirLight.visible = !dirLight.visible;
+					break;
+
+					case 48: // 0
+					flag=0;
+					step=!step;
+					break;
+
+					case 49: // 1
+					flag=1;
+					break;
+
+					case 50: // 2
+					flag=2;
+					break;
+
+					case 51: // 3
+					flag=3;
+					break;
+
+					case 52: // 4
+					flag=4;
+					break;
+
+					case 53: // 5
+					flag=5;
+					break;
+
+					case 54: // 6
+					flag=6;
+					break;
+
+				}
+
+			}
+
+			function update()
+			{
+			    
+			    var delta = clock.getDelta();
+			    customUniforms_1.time.value += delta;	 
+			    
+			}
+
+			function animate() {
+			    requestAnimationFrame(animate);
+			    
+				render();				
+				update();
+				
+			}
+
+			function render() {			    
+				//light
+				if(dirLight.position.x-camera.position.x>3){
+					dirLight.position.x-=5*step;	
+				}
+				else{
+					dirLight.position.x=camera.position.x
+				}
+
+				if (dirLight.intensity < 1.5) {
+					dirLight.intensity+=0.005;
+				}
+
+				if(AmbientLight.intensity<0.4){
+					AmbientLight.intensity+=0.003;
+				}
+				//mesh track
+				var delta = clock.getDelta();
+
+				for ( var i = 0; i < mixers.length; i ++ ) {
+					mixers[ i ].update( delta );
+				}
+
+				
+				for ( var i = 0; i < meshlen; i ++ ) {
+					var px=meshes[ i ].position.x, py=meshes[ i ].position.y;
+					meshes[ i ].position.x-=step;
+					if(Math.abs(px-meshes[meshlen].position.x)<60){
+						meshes[i].position.y=50+25*Math.cos(0.5*Math.PI*(px-meshes[meshlen].position.x)/60)
+					}
+					else{
+						meshes[i].position.y=50 + 4*Math.cos(px/10);  // divide 5 -> 10
+					}
+				}
+				
+
+				meshes[meshlen].position.x+=step;
+				
+				//meshes[meshlen].position.y=4*Math.cos(meshes[meshlen].position.x/5);
+				//meshes[meshlen].rotation.x+=0.5*step
+
+				//mesh avoid each other
+				for ( var i = 0; i < meshlen; i ++ ) {
+					
+					
+				}
+				
+                //camera
+               switch ( flag ) {
+
+					case 0: 
+					break;
+
+					case 1: 
+					camera.position.x+=step;
+					break;
+
+					case 2: 
+					camera.position.x-=step;
+					break;
+
+					case 3: 
+					camera.position.y+=step;
+					break;
+
+					case 4: 
+					camera.position.y-=step;
+					break;
+
+					case 5: 
+					camera.position.z+=step;
+					break;
+
+					case 6: 
+					camera.position.z-=step;
+					break;
+
+				}
+//				camera.position.y += -3;
+
+				//camera.lookAt( scene.position );
+
+
+				renderer.render( scene, camera );
+
+			}
+            
+
+		</script>
+</body>
+
+</html>

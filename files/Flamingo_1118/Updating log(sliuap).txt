@@ -1,0 +1,10 @@
+1) add the texture for fireball using shader2.
+2) add height map to simulate island on the sea insead of desert.
+
+maybe
+
+make the shpere space simulating scene from night to day with half-half maping to different sky texture (moon and sun) 
+
+make it back and fly along the sphere for a while
+
+(http://stemkoski.github.io/Three.js/Shader-Halo.html)
