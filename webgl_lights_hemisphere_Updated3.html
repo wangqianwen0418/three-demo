@@ -1,8 +1,8 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
-	<title>three.js webgl - lights - hemisphere light</title>
+	<title>qianwen and suyun's demo</title>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 	<style>
@@ -34,7 +34,8 @@
 			top: 0px;
 			width: 100%;
 			padding: 5px;
-			text-align: center;
+            left: 20px;
+			text-align: left;
 		}
 		
 		a {
@@ -46,13 +47,15 @@
 			color: #f00;
 		}
 		
-		#footer {
-			width: 100%;
-			margin: 2em auto;
-			text-align: center;
-			position: absolute;
-			bottom: 0
-		}
+        
+        #info {
+            position: absolute;
+            top: 0px; width: 100%;
+            padding: 5px;
+            color: white;
+            font-size: 20px;
+            text-align: center;
+			}
 		
 		strong {
 			color: red
@@ -61,10 +64,19 @@
 </head>
 
 <body>
-	<div id="container"></div>
+    
+	<div id="container">
+    </div>
+     <div id= "info" >
+        press 1-6 for adjusting the view point
+         <br/>
+        press 0 to stop the moving
+         <br/>
+        pay attention to see how the fireball is comming and how flamingos react to it 
+        </div>
 	<script src="js/three.js"></script>
-	<script src="js/Detector.js"></script>
-	<script src="js/libs/stats.min.js"></script>
+<!--	<script src="js/Detector.js"></script>-->
+<!--	<script src="js/libs/stats.min.js"></script>-->
 
 	<script type="x-shader/x-vertex" id="vertexShader">
         varying vec3 vWorldPosition;
@@ -220,7 +232,7 @@
 
 	<script>
 
-			if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+//			if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 
 			var camera, scene, renderer, dirLight, AmbientLight,hemiLight;
 			var mixers = [];
@@ -449,12 +461,12 @@
                     for(var i=0;i<meshlen;i++){
 
 						    var mesh = new THREE.Mesh( geometry, material );
-							var s = 0.3+i*0.01;
+							var s = 0.25+i*0.01;
 							mesh.scale.set( s, s, s );
 							mesh.position.y = 50+i*5; //5
 							mesh.rotation.y = -90*Math.PI/180;
 							mesh.position.z = -40;
-							mesh.position.x=-90+65*i;
+							mesh.position.x=-135+65*i;
 							
 							mesh.castShadow = true;
 							mesh.receiveShadow = true;
@@ -697,7 +709,7 @@
 				window.addEventListener( 'resize', onWindowResize, false );
 				document.addEventListener( 'keydown', onKeyDown, false );
 				
-console.log(meshes[meshlen + 1])
+//console.log(meshes[meshlen + 1])
 			}
 
 			function onWindowResize() {
@@ -815,7 +827,8 @@ console.log(meshes[meshlen + 1])
 				    meshes[meshlen - 1].position.y = 50 + 4 * Math.cos(meshes[meshlen - 1].position.x / 10); 
 				}
 
-				else if (meshes[meshlen - 1].position.x - meshBall.position.x  == 15) { 
+				else if (meshes[meshlen - 1].position.x - meshBall.position.x  < 15
+                        && meshes[meshlen - 1].position.x - meshBall.position.x  > 12) { 
 				    meshes[meshlen - 1].position.x -= step;
 
 				    scene.remove(meshes[meshlen - 1]);
